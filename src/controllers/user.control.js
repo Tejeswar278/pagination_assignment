@@ -7,8 +7,12 @@ const router = express.Router();
 
 router.get("/", async (req,res) => {
     try{
-        const users = await User.find().lean().exec();
-        return res.status(200).send(users)
+        const page = req.query.page || 1;
+        const pagesize = req.query.pagesize || 10;
+        const skip = (page-1)*pagesize;
+        const tp  = Math.ceil((await User.find().countDocuments()) / pagesize);
+        const users = await User.find().skip(skip).limit(pagesize).lean().exec();
+        return res.status(200).send({users,tp})
 
     }catch (err){
         return res.status(500).json({message: err.message})
